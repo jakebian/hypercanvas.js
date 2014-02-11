@@ -1,0 +1,12 @@
+- DOT, LINE are things to be seen, things to be created on the stage
+, whereas Vectors are abstract quantities, this means:
+
+	- Camera can only see and operate on dots, lines, etc., never single vectors. 
+
+	- Canvas only draws projections of dots and lines.
+
+- Canvas is literally the canvas that we draw on, we don't assign any object, point, line or camera to it, but rather give it the ability to draw lines, points, cameras, etc. 
+
+- Stage is never drawn, one can only view the stage through a camera.
+- To update vectors, create new one. To update dots, mutate, do not create new one.
+- Create new dots when a new representation (e.g., coords relative to camera) is needed.
