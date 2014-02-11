@@ -13,4 +13,4 @@ Features
 
 Dependencies
 ------------
-- All graphics are rendered with the [paper.js] {http://paperjs.org/} engine. 
+- All graphics are rendered with the [paper.js] (http://paperjs.org/) engine. 
