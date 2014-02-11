@@ -1,0 +1,1952 @@
+<html>
+<head>
+		<title>General Geodesic Motion: Rigid Bodies</title>
+		<link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,700' rel='stylesheet' type='text/css'>
+	</head>
+	<body>
+		<div id="header">
+			<a href="http://jakebian.com/projects/mdv"><img src="logo.jpg"></a>
+		<h1>General Geodesic Motion: Rigid Bodies</h1>
+		<p>Interaction of rigid bodies in curved spacetime, where the nth dimension is temporal. The motion described is an array of objects originally arranged as the vertices of a n-1 dimensions hypercube, placed in a uniform force field and colliding with a surface.</p>
+		</div>
+		<div id="init">
+			<div id="init-inner">
+				 <p>Select a dimension</p>
+				 <div id="dimensions-slider"></div>
+				 <button id='start_button'>go</button>
+			 </div>
+			
+		</div>
+		<div id="main">
+				
+				<div id="dimensions-select-container"></div>
+				<button id='show-sliders'>show all sliders</button>
+				<button id="add-slider">add rotation slider</button> 
+			
+			<div id="sliders-container">
+				
+			</div>
+
+			<div id="canvases">
+				<p id="instructions">SPACE: pause/start</br>ENTER: rotate/stop</p>
+				<canvas id="main-canvas" width="800" height="800"></canvas>
+			</div>
+		
+			<script src="res/jquery-1.8.1.min.js"></script>
+			<link rel="stylesheet" type="text/css" href="res/jquery-ui-1.9.1.custom.min.css">
+			<script type="text/javascript" src="res/jquery-ui-1.9.1.custom.min.js"></script>
+		</div>
+	</body>
+	<style type="text/css">
+	img{
+
+	}
+	#instructions{
+		color:#fff;
+		background-color:#ea661d;
+		right:10px;
+		position: absolute;
+		top:10px;
+		padding:20px;
+		border-radius: 3px;
+	}
+	#header{
+		padding:50px;
+	}
+		body{
+			font-family: Open Sans!important;
+			font-weight: 300!important;
+		}
+		h1,h2{
+			font-weight: 300;
+		}
+		h1{
+			padding-bottom:30px;
+			border-bottom: 5px solid #ea661d;
+			float:left;
+			margin-right:50px;
+			color:#aaa;
+		}
+
+		#canvases{
+			position: relative;
+			float:left;
+			background-color:#000;
+			width:100%;
+			height:800px;
+		}
+		#main-canvas{
+			position: absolute;
+			width:800px;
+			left:50%;
+			margin-left:-400px;
+		}
+		#main{
+			display: none;
+		}
+		html, body{
+			margin:0;
+		}
+		.ui-slider{
+			margin:20px;
+			width:300px;
+			float:left;
+			margin-bottom: 55px;
+		}
+		#dimensions-select-container{
+			float: left;
+margin-left: 50px;
+padding-bottom: 20px;
+		}
+		.rotation-slider{
+			display:none;
+		}
+		.rotation-slider>p{
+			font-family: Open Sans!important;
+			background: #279fd1;
+			color:#fff;
+			border:none;
+			padding:10px;
+			font-size:10px;
+			border-radius:3px;
+			width: 10px;
+			float: right;
+			margin: 5px;
+			margin-top: 20px;
+		}
+		#init-inner{
+			width:400px;
+			margin:auto;
+
+		}
+		.ui-selecting { background: #FECA40; }
+		.dimension-item.ui-selected { background: #F39814; color: white; }
+		.dimension-item{
+			padding:20px;
+			background-color:#eee;
+			margin:10px;
+			float:left;
+			font-size: 9px;
+			margin:2px;
+		}
+		.dimension_select{
+			float:left;
+			margin:0!important;
+			padding-left: 10px;
+		}
+		button{
+			font-family: Open Sans!important;
+			background: #279fd1;
+			color:#fff;
+			border:none;
+			padding:20px;
+			border-radius:3px;
+
+		}
+		button:active{
+			background: #3cb3e4;
+		}
+		button:hover{
+			opacity:0.8;
+		}
+		#init{
+			background-color:#000;
+			width:100%;
+			height:800px;
+			color:#fff;
+			padding-top:200px;
+		}
+		#init p{
+			font-size: 36px;
+		}
+		.ui-widget-content {
+			
+			border: none!important;
+		}
+		.ui-slider-horizontal {
+			height: 10px;
+		}
+		.ui-slider .ui-slider-handle {
+			position: absolute;
+			z-index: 2;
+			width: 30px;
+			height: 30px;
+			border-radius: 20px;
+			cursor: default;
+			border: none!important;
+			background-color: #279fd1!important;
+			background-image: none!important;
+			margin-top:-5px;
+		}
+	</style>
+	<script type="text/javascript">
+		var init = false;
+		var dimensions =2;
+		/*============================INITIALIZATION============================*/
+		$('#dimensions-slider').slider({
+			min: 2,
+			max: 22,
+			value: 0,
+			step: 1,
+			change: function( event, ui ) {
+				$(this).siblings('p').text('number of dimensions: '+ui.value);
+			}
+		});
+		$('#start_button').click(function(){			
+			$('#init').hide();
+			dimensions=$('#dimensions-slider').slider("value");
+			init=true;
+			run();
+		})
+	function run(){
+	if(init){
+		$('#main').fadeIn();
+		function initialize_canvas(){
+			var c=document.getElementById("main-canvas");
+			var ctx=c.getContext("2d");			
+			return ctx;
+		}
+		function initialize_canvas2(){
+			var c=document.getElementById("top-canvas");
+			var ctx=c.getContext("2d");			
+			return ctx;
+		}
+
+		var running=false;
+		var magic=false;
+		var ctx=initialize_canvas();	
+		//var ctx2=initialize_canvas2();	
+		var util_world=new world(2);
+		var hidden_world=new world(dimensions);
+		/*============================DRAWING METHODS============================*/
+				function canvas_draw_point(point,ctx,color){
+
+			ctx.beginPath();
+			ctx.arc(point.coord[0],point.coord[1],1,0,2*Math.PI);
+			ctx.closePath();
+			ctx.fillStyle = color;
+			ctx.fill();
+		}
+		function canvas_draw_particle(coord,ctx,radius){
+
+			ctx.beginPath();
+			//console.log(part.radius);
+			ctx.arc(coord[0],coord[1],radius,0,2*Math.PI);
+			ctx.closePath();
+			ctx.fillStyle = "rgba(255,144,255,.8)";
+			ctx.fill();
+		}
+		function get_random_color() {
+		    var letters = '0123456789ABCDEF'.split('');
+		    var color = '#';
+		    for (var i = 0; i < 6; i++ ) {
+		        color += letters[Math.round(Math.random() * 15)];
+		    }
+		    return color;
+		}
+		function canvas_draw_vector(point1,point2,color,ctx){
+	
+			ctx.beginPath();
+			ctx.moveTo(point1.coord[0],point1.coord[1]);
+			ctx.lineTo(point2.coord[0],point2.coord[1]);
+			ctx.closePath();
+			ctx.strokeStyle = color;
+			ctx.stroke();
+		}
+
+		var dt=0;
+		var start_time =new Date().getTime();
+
+		function update() {
+			
+			if(running){
+
+		
+				ctx.clearRect (0,0,800,800);
+
+				var end_time = new Date().getTime();
+				dt=(end_time-start_time)*0.001;	
+	
+				test_world.draw();	
+				update_interface();			
+								
+				
+			//	ground.acc.coord=new Array(0, 0,0);
+			//	ground.vel.coord=new Array(0, 0,0);
+			//	//ground.pos.coord=new Array(0, 2000,0);
+			//	
+				
+
+				if(magic){
+					magic_slider();
+				}
+				start_time = new Date().getTime();
+			}
+			else{
+				start_time = new Date().getTime();
+			}
+			requestAnimationFrame(update);
+		}
+
+
+		/*============================UTILITIES============================*/
+
+
+
+		/*============================CAMERA OBJECT============================*/
+		function rotation(a, b, theta){
+			this.dim1=a;
+			this.dim2=b;
+			this.angle=theta;
+			this.do_rotation=do_rotation;
+			this.rotate=rotate;
+			this.rotate_to=rotate_to;
+			//console.log()
+			function do_rotation(coord){
+				var new_coord=coord;
+				var a=coord[this.dim1];
+				var b=coord[this.dim2];
+				new_coord[this.dim1]=a*Math.cos(this.angle)-b*Math.sin(this.angle);
+				new_coord[this.dim2]=a*Math.sin(this.angle)+b*Math.cos(this.angle);
+				
+				return new_coord;
+			}
+			function rotate(t){
+				this.angle+=t;
+			}
+			function rotate_to(t){
+				this.angle=t;
+			}
+		}
+		function clone(a){ 
+		  return $.extend({}, a)
+		 }
+		function camera(coord_array,wd){
+			this.rotations=new Array()
+			this.add_to=add_to;
+			this.world=wd;
+			this.add_to(this.world);
+			this.coord=this.world.make_coord(coord_array);
+			this.pan=pan;
+			this.angle_x=0;
+			this.angle_y=0;
+			this.angle_z=0;
+			this.apply_rotations=apply_rotations;
+			this.get_2D_point=get_2D_point;
+			this.draw_point=draw_point;
+			this.draw_vector=draw_vector;
+			//this.rotate=rotate;
+			this.rotate_to=rotate_to;
+			this.get_2D_particle=get_2D_particle;
+			this.draw_particle=draw_particle;
+			this.draw_spring=draw_spring;
+			this.get_rotation=get_rotation;
+			// function rotate(a,b,theta){
+			// 	if (typeof(this.rotations[a]) == "undefined"){
+			// 		this.rotations[a]= new Array();
+			// 	}
+			// 	if(typeof(this.rotations[a][b]) == "undefined") {
+			// 		this.rotations[a][b] = new rotation(a,b,theta);
+			// 	}
+			// 	else{
+			// 		this.rotations[a][b].rotate(theta)
+			// 	}
+			// }
+			function get_rotation(a,b){
+				//console.log(this.rotations);
+				if(typeof(this.rotations[a]) == "undefined"){
+					this.rotations[a]=new Array();
+					
+				}
+				if(typeof(this.rotations[b]) == "undefined"){
+					this.rotations[b]=new Array();
+					
+				}
+				
+				 if (typeof(this.rotations[a][b]) == "undefined"&&typeof(this.rotations[b][a]) == "undefined"){
+					
+				}
+				else if(typeof(this.rotations[a][b]) == "undefined"){
+					return this.rotations[b][a];
+				}
+				else{
+					return this.rotations[a][b];
+				}
+			}
+			function rotate_to(a,b,theta){
+				var rot=this.get_rotation(a,b);
+				if(typeof(rot) == "undefined") {
+					this.rotations[a][b] = new rotation(a,b,theta);
+					rot=this.rotations[a][b];
+				}
+				rot.rotate_to(theta);				
+			}
+			function pan(vect){
+				for(var i=0; i<vect.coord.length;i++){
+					this.coord[i]+=vect.coord[i];
+				}
+			}
+			function add_to(w){
+				w.add_cam(this);
+			}
+			function apply_rotations(coord){
+				var new_coord=clone_array(coord);
+				for(var i =0; i<this.rotations.length; i++){
+					for(var j=0; j<this.rotations.length; j++){
+					var rot=this.get_rotation(i,j);
+					if(typeof(rot)!="undefined"){
+						new_coord=rot.do_rotation(new_coord);}
+					}
+				}
+				return new_coord;
+			}
+
+			function get_2D_point(c){
+				var new_coord;
+				var ex= this.world.ex;
+				var test_coord=c.slice(0);
+				
+				if(typeof(ex)!="undefined"){
+					test_coord.length=this.world.dimensions ;
+					test_coord[test_coord.length]=ex.evaluate(test_coord);
+				}
+			//	var focalLength=2000;
+				new_coord = this.apply_rotations(test_coord);		
+				var scale=1;
+			//	var scale=focalLength/(new_coord[2]+this.coord[2]+focalLength);	
+				var coord=this.coord;		
+				//console.log(scale);
+				//console.log("useful?");		
+				return new Vect(new Array ((coord[0]+new_coord[0])*scale,(coord[1]+new_coord[1])*scale));				
+					//return new Vect(new Array ((coord[0]+new_coord[0])*scale,(coord[1]+new_coord[1])*scale));
+			}
+			function get_2D_particle(part){
+				//var new_part=clone(part);
+				var ex= this.world.ex;
+				var coord= part.pos.coord.slice(0);
+				//console.log("before: "+coord);
+				
+			//	console.log(coord);
+				if(typeof(ex)!="undefined"){
+					coord.length=this.world.dimensions;
+					coord[coord.length]=ex.evaluate(coord);
+				}
+				var new_coord = this.apply_rotations(coord);			
+				//var focalLength=2000;
+				//var scale=focalLength/(new_coord[2]+this.coord[2]+focalLength);	
+				var scale=1;
+				return new Array ((this.coord[0]+new_coord[0])*scale,(this.coord[1]+new_coord[1])*scale);
+			}
+			function draw_point(point,ctx,color){
+				//console.log(point.color);
+				canvas_draw_point(this.get_2D_point(point),ctx,color);
+			}
+			function draw_particle(part,ctx){
+				canvas_draw_particle(this.get_2D_particle(part),ctx, part.radius);
+			}
+			function draw_vector(vector,ctx){
+				canvas_draw_vector(this.get_2D_point(vector.coord_1),this.get_2D_point(vector.coord_2),vector.color,ctx)
+			}
+			function draw_spring(s,ctx){
+				canvas_draw_vector(this.get_2D_point(s.a.pos.coord),this.get_2D_point(s.b.pos.coord),"#000",ctx);
+			}
+
+		}
+
+		/*============================POINT OBJECT============================*/
+		
+
+		/*============================VECTOR OBJECT============================*/
+		function net_vector(coord,wd){
+			this.coord_1=wd.origin;
+			this.coord_2=coord;
+			this.multiply=multiply;
+			this.get_magnitude=get_magnitude;
+			this.get_negative=get_negative;
+			function get_magnitude(){
+				var sum=0;
+				for(var i =0; i<this.coord_2.length;i++){
+					sum+=this.coord_2[i]*this.coord_2[i];
+				}
+				return Math.sqrt(sum);
+			}
+			function get_negative(){
+				var new_coord=new Array();
+				for(var i=0; i<this.coord_2.length;i++){
+					new_coord[i]=this.coord_2[i]*-1;
+				}
+				return new net_vector(new_coord,hidden_world);
+			}
+			function multiply(c){
+				var new_coord=clone(this.coord_2);
+				for(var i =0; i<this.coord_2.length;i++){
+					new_coord[i]=new_coord[i]*c;
+				}
+				return new vector(this.coord_1,new_coord,hidden_world);
+			}
+		}
+		
+		function Vect(coord_array){
+			this.coord=coord_array;
+			this.mult=mult;
+			this.dot=dot;
+			this.add=add;
+			this.magnitude=magnitude;
+			this.unit_vect=unit_vect;
+			this.rotations= new Array();
+			this.rotate_to=rotate_to;
+			this.get_rotate_coord=get_rotate_coord;
+			
+			function rotate_to(a,b,theta){
+				var complete=false;
+				var rot;
+				for(var i =0; i<this.rotations.length&&!complete; i++){
+					if((this.rotations[i].dim1==a && this.rotations[i].dim2==b)||(this.rotations[i].dim2==a && this.rotations[i].dim1==b)){
+							this.rotations[i].rotate_to(theta);
+							rot=this.rotations[i];							
+							complete=true;
+					}
+				}
+				if(!complete){
+					this.rotations[this.rotations.length] = new rotation(a,b,theta);
+					rot=this.rotations[this.rotations.length-1];
+				}
+				this.coord=rot.do_rotation(this.coord);
+			}
+			function get_rotate_coord(a,b,theta){
+
+				var	rot=new rotation(a,b,theta);
+				return rot.do_rotation(this.coord);
+
+			}
+
+			function mult(k){
+				var newCoord = new Array();
+				for(var i=0; i<this.coord.length; i++){
+					newCoord[i]=this.coord[i]*k;
+				}
+				return new Vect(newCoord);
+			}
+			function dot(vect){
+				var product =0;
+				for(var i=0; i<this.coord.length;i++){
+					product+=this.coord[i]*vect.coord[i];
+				}
+				return product;
+			}
+			function add(vect){
+				var newCoord = new Array();
+				var larger_length=0;
+				if(vect.coord.length<this.coord.length){
+					larger_length=this.coord.length;
+					vect.coord=make_coord(vect.coord,larger_length);
+				}
+				else{
+					larger_length=vect.coord.length;
+					this.coord=make_coord(this.coord,larger_length);
+				}
+
+				for(var i=0; i<larger_length;i++){
+					if(i>vect.length){
+						newCoord[i]=this.coord[i];
+					}
+					else{
+					newCoord[i]=this.coord[i]+vect.coord[i];}
+				}
+				return new Vect(newCoord);
+			}
+			function magnitude(){
+				var mag=0;
+				for(var i=0; i<this.coord.length;i++){
+					mag+=Math.pow(this.coord[i],2);
+				}
+				return(Math.pow(mag,0.5));
+			}
+			function unit_vect(){
+				var newCoord= new Array();
+				var mag = this.magnitude();
+				for(var i=0; i<this.coord.length;i++){
+					newCoord[i]=this.coord[i]/mag;					
+				}
+				return new Vect(newCoord);
+			}
+		}
+
+		/*============================WORLD OBJECT============================*/
+		function world(dim){
+
+			this.cam;
+
+			this.dimensions=dim;
+			this.point_count=0;
+			this.point_list=new Array();
+			this.add_point=add_point;
+
+			this.vector_count=0;
+			this.vector_list=new Array();
+			this.add_vector=add_vector;
+
+			this.particle_list=new Array();
+
+			this.add_cam=add_cam;
+
+			this.draw=draw;
+			//this.draw_points=draw_points;
+			this.draw_vectors=draw_vectors;
+			
+			this.make_coord=make_coord;
+			this.make_axes=make_axes;
+			this.make_axis=make_axis;
+			this.origin = this.make_coord(new Array(0,0));
+
+
+			this.make_direction_vector=make_direction_vector;
+			this.axes= new Array();
+			this.draw_particles=draw_particles;
+			this.add_particle=add_particle;
+			this.handle_particle_collision=handle_particle_collision;
+			this.spring_list= new Array();
+			this.add_spring=add_spring;
+			this.draw_springs=draw_springs;
+			this.clean=clean;
+			this.ctx;
+
+			this.ex;
+			function clean(){
+				// var new_arr= new Array();
+				// for(var i =0; i<this.particle_list.length; i++){
+				// 	if(this.particle_list[i].exist){
+				// 		new_arr[new_arr.length]=this.particle_list[i];
+				// 	}
+				// }
+
+				// this.particle_list=new_arr;
+				// console.log(this.spring_list.length);
+
+
+			}
+			function add_particle(part){
+				this.particle_list[this.particle_list.length]=part;
+
+			}
+
+			function add_vector(vector){
+				this.vector_list[this.vector_count]=vector;
+				this.vector_count++;
+			}
+			function add_spring(s){
+				this.spring_list[this.spring_list.length]=s;
+				//console.log(this.spring_list);
+			}
+			function draw_springs(){
+				for(var i=0; i<this.spring_list.length;i++){
+					this.spring_list[i].solve();
+					this.cam.draw_spring(this.spring_list[i],this.ctx);
+				}
+
+			}
+			function make_coord(c){
+				var coord=c;
+				for(var i=c.length; i<this.dimensions; i++){
+					coord[i]=0;
+				}
+				return coord;
+			}
+			function make_axes(){
+				for (var i =0; i<this.dimensions; i++ ){
+					this.make_axis(i);
+				}
+			}
+			function make_axis(n){
+				var coord=new Array();
+				for(var i =0; i<this.dimensions; i++){
+					coord[i]=0;
+				}
+				coord[n]=150;
+				this.axes[this.axes.length]=new vector(this.origin, coord,this);
+				return this.axes[this.axes.length-1];
+			}
+
+			function add_point(point){
+				this.point_list[this.point_count]=point;
+				this.point_count++;
+			}
+			function add_cam(cam){
+				this.cam=cam;
+			}
+			function draw_particles(){
+				for(var i =0; i<this.particle_list.length;i++){
+					var part=this.particle_list[i];
+					this.cam.draw_particle(part,this.ctx);
+					//console.log(part.pos.coord);
+					var pt= new static_point(part.pos.coord,this);
+					pt.color="#fff"
+				}
+
+			}
+
+			function draw_vectors(){				
+				for(var i =0; i<this.vector_count;i++){
+					this.cam.draw_vector(this.vector_list[i],this.ctx);
+				}
+			}
+			this.connector_list= new Array();
+			this.add_connector=add_connector;
+			this.draw_connectors=draw_connectors;
+			this.update_connectors=update_connectors;
+			function add_connector(c){
+				this.connector_list[this.connector_list.length]=c;
+			}
+			function draw_connectors(){
+				for(var i =0; i<this.connector_list.length;i++){
+					this.cam.draw_vector(this.connector_list[i],this.ctx);
+				}
+
+			}
+			function update_connectors(){
+				for(var i =0; i<this.connector_list.length;i++){
+					this.connector_list[i].update();
+				}
+				//console.log(this.particle_list.length);
+			}
+			this.static_points=new Array();
+			this.static_points=this.static_points;
+			this.add_static_point=add_static_point;
+			function add_static_point(p){
+				this.static_points[this.static_points.length]=p;
+			}
+			this.draw_static_points=draw_static_points;
+			function draw_static_points(){
+				for(var i =0; i<this.static_points.length;i++){
+					this.cam.draw_point(this.static_points[i].coord,this.ctx,this.static_points[i].color);
+				}
+			}
+			function draw(){
+				this.draw_static_points();
+				this.draw_vectors();
+				this.draw_particles();
+				this.draw_springs();
+				this.update_strings();
+				this.handle_particle_collision();
+				this.draw_connectors();
+				//update_connectors();
+			}
+			
+			function handle_particle_collision(){
+				
+				for(var i=1; i<this.particle_list.length;i++){
+					this.particle_list[i].handle_surface();
+					for(var j=i+1; j<this.particle_list.length;j++){
+						this.particle_list[i].handle_collision(this.particle_list[j]);						
+					}					
+				}
+				
+				for(var i=0; i<this.particle_list.length;i++){	
+						if(i>0){
+						this.particle_list[0].attract_part(this.particle_list[i]);	}	
+						this.particle_list[i].update(0.01);	
+						//console.log(this.particle_list[i].pos.coord);									
+				}
+			}
+			function make_direction_vector(coord){
+				return new vector(this.origin,this.make_coord(coord),this);
+			}
+			function generate_polygon(n){
+				for (i = 0; i < n; i++) {				 
+				}
+			}
+			this.string_list=new Array();
+			this.add_string=add_string;
+			this.update_strings=update_strings;
+			function add_string(s){
+				this.string_list[this.string_list.length]=s;
+			}
+			function update_strings(){
+				for(var i=0; i<this.string_list.length;i++){
+					this.string_list[i].update();
+				}
+			}
+		}
+
+
+		/*============================MAIN TEST============================*/
+
+		var test_world= new world(dimensions);		
+		var test_cam=new camera(new Array(350,350,0),test_world);
+		function make_function(a,b){
+				a.operate(new multiply(9/2));							
+				a.operate(new pow(1/3));
+		}
+		e= new expression(3);
+		make_function(e.variables[0],e.variables[1]);
+		//test_world.ex=e;
+		var ground= new particle(new Array(2000, 0,0),Math.pow(10,19)*2.24 ,10,test_world);
+		test_world.make_axes();
+		var springs=new Array();
+		var particles=new Array();		
+		test_world.ctx=ctx;
+
+		
+				
+		// 			static_world.cam=static_cam;
+		// 			var g = new graph(ex,static_world,15,500,-5,5);
+		// 			g.init()
+		// 			console.log(g);
+					//test_cam.graph=g;
+					//40:2
+		function end_world_coord(world){
+			a=new Array();
+			for(var i=0; i<world.dimensions;i++){
+				a[i]=50;
+			}
+			return a;
+		}
+	  //  var string = new String(new Array(0,0,0),end_world_coord(test_world),15,3000,7000,test_world)
+		// var max_dim=10;
+
+		
+		//var wall1 = new particle(new Array(0, 700,700),Math.pow(10,0)*2.24 ,1750,test_world); // ground
+		ground.simulate=false;
+		//wall1.simulate=false;
+	//	springs[springs.length]=new Spring(particles[particles.length],particles[0],5,9000);
+
+
+
+		/*============================PHYSICS SECTION============================*/
+		/*============================PARTICLE OBJECT============================*/
+		function Joint(part1,part2,l){
+			this.a=part1;
+			this.b = part2;
+			this.length= l;
+			this.solve=solve;
+			function solve(){
+
+					var n = this.a.pos.add(this.b.pos.mult(-1));
+
+					var dist = n.magnitude();
+					var rel_vel=this.a.vel.add(this.b.vel.mult(-1)).dot(n.unit_vect());		
+					var rel_dist=this.length-dist;
+					var to_remove= rel_vel+rel_dist/(dt);	
+					j=to_remove/((1/this.a.mass+1/this.b.mass)*100000);
+			}
+		}
+		function Spring(part1,part2,l,sk){
+
+			this.a=part1;
+			this.b = part2;
+			this.a.connect_to(this.b);
+			this.b.connect_to(this.a);
+			this.world=this.a.world;
+			this.world.add_spring(this);
+			this.length= l;
+			this.solve=solve;
+			this.k=sk;
+			function solve(){
+				var rel_pos=this.a.pos.add(this.b.pos.mult(-1));
+				var rel_vel=this.a.vel.add(this.b.vel.mult(-1));
+				// console.log("-------")
+				// console.log(this.a.pos);
+				// console.log(this.b.pos);
+				var x=rel_pos.unit_vect().mult(rel_pos.magnitude()-this.length);
+				var f=x.mult(this.k);
+				f=f.add(rel_vel.mult(50));
+				this.b.apply_force(f);				
+				this.a.apply_force(f.mult(-1));					
+			}
+		}
+		function String(coordS,coodE,d,m,sk,wd){
+			this.world=wd;
+			this.world.add_string(this);			
+			this.res=d;
+			this.mass=m;
+			this.k=sk;
+			this.points=new Array();
+			var part_mass=this.mass/this.res;
+			
+			this.start_p=new particle(coordS,part_mass,3,this.world);
+			this.end_p=new particle(coodE,part_mass,3,this.world);
+			this.points[0]=this.start_p;
+			this.points[this.res-1]=this.end_p;
+			this.net_vect=this.start_p.pos.add(this.end_p.pos.mult(-1));
+			this.length=this.net_vect.magnitude();
+			var part_length=this.length/this.res;
+			this.update=update;
+		
+			for(var i=1;i<this.res-1;i++){
+				var new_pos=this.net_vect.unit_vect().mult(part_length*i);
+				this.points[i]=new particle(new_pos.coord,part_mass,3,this.world);
+			}
+			for(var i=0;i<this.res-1;i++){
+
+				springs[i]=new Spring(this.points[i+1],this.points[i],part_length,sk);
+			}
+			//springs[this.res]=new Spring(this.points[0],this.points[this.res-1],part_length,sk);
+			//springs[this.res]=new Spring(this.points[3],this.points[10],part_length,sk);
+			function update(){
+				this.points[0].pos=new Vect(make_coord(new Array(0,1,0),18));
+				this.points[0].acc=new Vect(make_coord(new Array(0,1,0),18));
+				this.points[0].vel=new Vect(make_coord(new Array(0,1,0),18));
+			}
+		}
+
+		function make_coord(c,n){
+				var coord=new Array();
+				for(var i=0; i<c.length; i++){
+					coord[i]=c[i];
+				}
+				for(var i=c.length; i<n; i++){
+					coord[i]=0;
+				}
+				return coord;
+		}
+
+		function particle(coord,m,r,wd){ // a particle is an n-dimensional sphere
+			this.exist = true;
+			this.simulate=true;
+			this.unique=false;
+			this.world = wd;
+			var max_dim=18;
+			this.force_to_remove=new Array();
+			this.mass=m;
+			this.radius=r;
+			this.restitution=0.8;
+			this.connected_to = new Array();
+			this.acc= new Vect(make_coord(new Array(0),max_dim));
+			this.vel= new Vect(make_coord(new Array(0),max_dim));
+			this.force=new Vect(make_coord(new Array(0),max_dim));
+			this.pos= new Vect(make_coord(coord,max_dim))
+			this.collided_particle=collided_particle;	
+			this.add_to=add_to;
+			this.handle_collision=handle_collision;
+			this.apply_force=apply_force;
+			this.add_to(this.world);
+			this.update=update;
+			this.apply_impulse=apply_impulse;
+			this.attract_part=attract_part;
+			this.remove_force=remove_force;
+			this.duplicate=duplicate;
+			this.duplicate_rotate_to=duplicate_rotate_to;
+			this.duplicate_translate=duplicate_translate;
+			this.connect_to=connect_to;
+			this.is_connected_to=is_connected_to;
+			function connect_to(p){
+				this.connected_to[this.connected_to.length]=p;
+			}
+			function is_connected_to(p){
+				for(var i=0; i<this.connected_to.length;i++){
+				//	console.log(p.pos.coord);
+				//	console.log(this.connected_to[i].pos.coord);
+					if(p==this.connected_to[i]){
+						return true;
+					}
+				}
+				return false;
+			}
+			function duplicate(){
+				var new_part=new particle(this.pos.coord,this.mass,this.radius,this.world);
+				new_part.simulate=this.simulate;
+				return new_part;
+
+			}
+
+			function duplicate_rotate_to(a,b,theta){
+				var part=this.duplicate();
+				part.pos.rotate_to(a,b,theta);
+				return part;
+			}
+
+			function duplicate_translate(a,b,vect){
+				var part=this.duplicate();
+				part.pos=part.pos.add(vect);
+				return part;
+			}
+
+			function add_to(w){
+				w.add_particle(this);
+			}
+			function attract_part(p){
+				var rel_vect=this.pos.add(p.pos.mult(-1));
+				var force = rel_vect.unit_vect().mult( 6.67*Math.pow(10,-11)*this.mass*p.mass/Math.pow(rel_vect.magnitude(),2));
+				p.apply_force(force);
+				this.apply_force(force.mult(-1));						
+			}
+
+			function update(dt){
+				if(this.unique){
+				}
+				//console.log(dt);
+				this.acc=this.force.mult(1/this.mass)
+				this.vel=this.vel.add(this.acc.mult(dt));
+				this.pos=this.pos.add(this.vel.mult(dt));
+
+				//this.pos=this.pos.add(time_vect.mult(dt));
+				//this.point.coord=this.pos.coord;
+				for(var i=0; i<this.force_to_remove.length; i++){
+					this.remove_force(this.force_to_remove[i]);
+				}
+				this.force_to_remove.length=0;
+			}
+			function apply_force(f){
+				f.coord=make_coord(f.coord,max_dim);
+				this.force=this.force.add(f);
+				this.force_to_remove[this.force_to_remove.length]=f;
+			}
+			function remove_force(f){
+				if(this.unique){
+				}
+				;
+;				f.coord=make_coord(f.coord,max_dim);
+				this.force=this.force.add(f.mult(-1));
+				if(this.unique){
+				}
+			
+			}
+			this.handle_surface=handle_surface;
+			function handle_surface(){
+				if(this.pos.coord[0]>50){
+				//	console.log("hit floor");
+					var j; //impulse;
+					var n = new Vect(new Array(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0));
+					//console.log(n.coord.length);
+					var rel_vel=this.vel;
+					var e=this.restitution;				
+					j=(-1)*(1+e)*rel_vel.dot(n)/(n.dot(n)*(1/this.mass)); //normalize it later
+					this.apply_impulse(j,n);
+					this.pos.coord[0]=50;
+				}
+			}
+			function handle_collision(p){
+				if(this.collided_particle(p)){					
+					var j; //impulse;
+					var n = p.pos.add(this.pos.mult(-1));
+					var rel_vel=this.vel.add(p.vel.mult(-1));
+					var e=this.restitution;				
+					j=(-1)*(1+e)*rel_vel.dot(n)/(n.dot(n)*(1/this.mass+1/p.mass)); //normalize it later
+					//n.coord[dimensions-1]=0;
+					this.apply_impulse(j,n);
+					p.apply_impulse(j*-1,n);
+					var to_add=this.pos.add(n.unit_vect().mult(p.radius+this.radius+2));
+					p.pos=to_add;
+				}
+			}
+			function apply_impulse(j,n){
+				this.vel=this.vel.add(n.mult(j/this.mass));
+			}
+			function collided_particle(p){		
+				
+				// console.log(p.radius);
+				// console.log(p.pos.coord);
+				// console.log(this.radius);
+				// console.log(this.pos.coord);
+				var net_vect=this.pos.add(p.pos.mult(-1));
+				var dist=net_vect.magnitude();
+				//console.log(dist);
+				if((this.radius+p.radius)>dist){
+					//console.log("bam");
+					//console.log(this.radius+p.radius);
+					
+					// var to_add=p.pos.add(net_vect.unit_vect().mult(((this.radius+p.radius+0.1))));
+					// this.pos=to_add;
+					//console.log(this.pos.coord);
+					//console.log(to_add.coord);
+					
+					//this.pos.coord=new Array(0,0,0);
+					//console.log(this.pos.coord);
+					return true;
+				}
+				return false;
+			}
+		}
+
+		/*============================INTERACTION LISTENERS============================*/
+
+		$(document).on('keydown',function(e){
+			if(e.which=="32"){
+				running=!running;
+				e.preventDefault();
+				if(running){
+					update_interface();
+					//static_world.draw();	
+				}
+			}
+
+
+			if(e.which=="13"){
+				magic=!magic;
+			}
+			if(e.which=="65"){
+				test_cam.pan(new Vect(new Array(5,0,0)));
+				e.preventDefault();
+			}
+			if(e.which=="65"){
+				test_cam.pan(new Vect(new Array(5,0,0)));
+				e.preventDefault();
+			}
+			if(e.which=="68"){
+				e.preventDefault();
+				test_cam.pan(new Vect(new Array(-5,0,0)));
+				
+			}
+			if(e.which=="87"){
+				e.preventDefault();
+				test_cam.pan(new Vect(new Array(0,5,0)));
+				
+			}	
+			if(e.which=="83"){
+				e.preventDefault();		
+				test_cam.pan(new Vect(new Array(0,-5,0)));
+					
+			}	
+			if(e.which=="38"){
+				e.preventDefault();
+				test_cam.pan(new Vect(new Array(0,0,-5)));
+				
+			}	
+			if(e.which=="40"){
+				e.preventDefault();
+				test_cam.pan(new Vect(new Array(0,0,5)));
+				
+			}
+
+			
+
+		})	
+
+
+		/*============================FRAME UPDATER============================*/
+		requestAnimationFrame(update);
+
+		/*============================INTERFACE============================*/
+
+			/*============================SLIDERS============================*/7
+			var sliders_list=new Array();
+			$('#show-sliders').click(function(){
+				$('.rotation-slider').fadeToggle();}
+			)
+
+			function rotation_slider(a,b){
+				this.dim1=a;
+				this.dim2=b;
+				this.ID=sliders_list.length;
+				this.element = '<div class="rotation-slider" id="rotation-slider'+this.ID+'"><p>'+this.dim1+'</p><p>'+this.dim2+'</p></div>';
+				this.selector="#rotation-slider"+this.ID;
+				this.value=0;
+				this.init=init;
+				this.init();
+				this.update=update;
+				function init(){
+					$(this.element).appendTo('#sliders-container').slider({
+						min: -2*Math.PI,
+						max: 2*Math.PI,
+						value: Math.PI/4,
+						step: 0.025
+					});
+				}
+				function update(){
+					test_cam.rotate_to(this.dim1,this.dim2,$(this.selector).slider( "value" ));
+				}
+			}
+			function slider_exists(a,b){
+				for(var i=0; i<sliders_list.length; i++){
+					
+					if(a==sliders_list[i].dim1&&b==sliders_list[i].dim2){
+						return true;
+					}
+					if(a==sliders_list[i].dim2&&b==sliders_list[i].dim1){
+
+						return true;
+					}
+				}
+				return false;
+			}
+			function get_slider(a,b){
+				for(var i=0; i<sliders_list.length; i++){
+					
+					if(a==sliders_list[i].dim1&&b==sliders_list[i].dim2){
+						return sliders_list[i];
+					}
+					if(a==sliders_list[i].dim2&&b==sliders_list[i].dim1){
+
+						return sliders_list[i];
+					}
+				}
+				//return 'sorry';
+			}
+			for(var i=0; i<dimensions;i++){
+				for(var j=0; j<dimensions; j++){
+					if(!slider_exists(i,j)&&i!=j){
+					sliders_list[sliders_list.length]=new rotation_slider(i,j);}
+				}
+			}
+			function magic_slider(){
+				for(var i=0; i<sliders_list.length; i++){
+					var value=$((sliders_list[i]).selector).slider("value");
+					if(value==2*Math.PI){
+						$((sliders_list[i]).selector).slider("value",-2*Math.PI);
+						value=-2*Math.PI;
+					}
+
+					$((sliders_list[i]).selector).slider("value",value+0.02);
+				}
+			}
+
+			
+			/*============================SELECTABLE============================*/
+				function make_tables(){					
+					for(var i=0;i<2;i++){
+						var element="";
+						element+="<ul class='dimension_select' id='dimension_select_"+i+"''>"
+						for(var j=0; j<test_world.dimensions;j++){
+							element+=("<li class='dimension-item'>"+j+"</li>")
+						}
+						element+="</ul>";
+						$(element).appendTo('#dimensions-select-container').selectable({
+						    stop:function(event, ui){
+						        $(event.target).children('.ui-selected').not(':first').removeClass('ui-selected');
+						    }
+						});
+						
+					}	
+				}
+				make_tables();
+				$('#add-slider').click(function(){
+					var a=parseInt($("#dimension_select_0").children('.ui-selected').text());
+					var b =parseInt($("#dimension_select_1").children('.ui-selected').text());
+					if(a!=b){
+						$(get_slider(a,b).selector).fadeIn();
+					}
+
+				});
+			/*============================UTIL============================*/
+			function update_interface(){
+				
+				for(var i=0; i<sliders_list.length; i++){
+					sliders_list[i].update();
+				}
+			}
+			function particle_group(){
+				this.particles = new Array();
+				this.add=add;
+				this.translate=translate;
+				function translate(vect){
+					for(var i=0; i<this.particles.length;i++){
+						console.log('translate');
+						this.particles[i].pos=this.particles[i].pos.add(vect);
+					}
+				}
+				function add(p){
+					this.particles[this.particles.length]=p;
+				}
+			}
+
+		
+			//if (test_world.dimensions<6){
+			
+			// var particle_b= new particle(new Array(30,-40),20,20,test_world);
+			// var particle_c= new particle(new Array(50,0),20,20,test_world);
+			// var particle_d= new particle(new Array(0,50),20,20,test_world);
+			// var particle_d= new particle(new Array(70,-40),20,20,test_world);
+			var test_particles= new Array();
+			// for(var i=-350; i<350;i+=50){
+			// 	for(var j=-350; j<350; j+=25){
+			// 		for(var k=-350; k<350; k+=25){
+			// 		test_particles[test_particles.length]= new static_point(new Array(i,j),test_world); 
+			// 		}
+			// 		//test_particles[test_particles.length]= new static_point(new Array(i,j),test_world); 
+			// 	}
+
+			// }
+			// test_particles[test_particles.length]= new particle(new Array(0),2,2,test_world); 
+			// test_particles[test_particles.length]= new particle(new Array(30,30),2,2,test_world); 
+			// test_particles[test_particles.length]= new particle(new Array(50,30),2,2,test_world); 
+
+
+			 make_coord_particles(-100,100,100,0,dimensions-1,new Array());
+			function make_coord_particles(min,max,interval,level,max_level,array){
+				for(var i=min; i<max; i+=interval){
+					array[level]=i;					
+	
+					//console.log(array);
+					if(level<max_level){
+						make_coord_particles(min,max,interval,level+1,max_level,array);
+					}
+					else{
+						console.log(array);
+						test_particles[test_particles.length]= new particle(array,15,15,test_world); 
+
+						array=array.slice(0);
+					}
+				}
+			} 
+			//var string = new String(new Array(0),end_world_coord(test_world),15,3000,12000,test_world)
+			// var sparing_ab = new Spring(particle_a,particle_b,80,7000);
+			// var sparing_bc = new Spring(particle_b,particle_c,80,7000);
+			// var sparing_ac = new Spring(particle_a,particle_c,80,7000);
+			//var sparing_ac = new Spring(particle_a,particle_c,80,7000);
+			//var sparing_da = new Spring(particle_d,particle_a,80,7000);
+			//var sparing_db = new Spring(particle_d,particle_b,80,7000);
+			//var sparing_dc = new Spring(particle_d,particle_c,80,7000);
+			//make_soft_poly(100,4,3,test_world);
+			//make_hypercube(200,test_world.dimensions,test_world);
+	//	}
+			//var test_part= new particle(make_coord(new Array(100,0)),5,5,test_world);
+			//test_part.simulate=false;
+			//var rot_x=test_part.duplicate_rotate_to(0,1,Math.PI/2);
+			//var rot_y=test_part.duplicate_rotate_to(0,2,Math.PI/2);
+			//var rot_z=test_part.duplicate_rotate_to(0,3,Math.PI/2);
+			function make_time_vect(){
+				var arr = new Array();
+				for(var i=0; i< dimensions-1; i++){
+					arr[i]=0;
+				}
+				arr[dimensions-1]=-35;
+				return new Vect(arr);
+			}
+		//	var time_vect= make_time_vect();
+			function make_hypercube(sl,dim,wd){
+				 this.world=wd;
+				 this.group = new particle_group;
+				 this.side_length=sl;
+				 var star_arr=new Array();
+				 for(var i=0; i<dim; i++){
+				 	star_arr[i]=-sl/2;
+				 }
+				 var start_p=new particle(star_arr,5,5,this.world);
+				 start_p.simulate=false;
+				 this.group.add(start_p);
+				 var sets= new Array();	
+
+				 this.translate_duplicate=translate_duplicate;
+				 sets[0]=new Array();
+				 sets[0][0]=new Array(start_p)
+				 sets[0][0][1]=new Array();
+				 for(var i=0; i<dim; i++){
+				 	sets[i+1]=translate_duplicate(sets[i],i);
+				 }			
+				 this.world.clean();	
+
+				 function translate_duplicate(a,d){
+				 	var new_array= clone_array(a);
+
+				 	for(var i=0; i<a.length;i++){	
+				 			var translate_coord= make_coord(new Array(0,0),dim);
+				 			translate_coord[d]=this.side_length;
+				 			new_array[new_array.length]= new Array();
+					 		new_array[new_array.length-1][0]=a[i][0].duplicate_translate(0,d,new Vect(translate_coord));
+					 		new_array[new_array.length-1][0].simulate=false;
+					 		new_array[new_array.length-1][1]=new vector(new_array[new_array.length-1][0].pos.coord,a[i][0].pos.coord,this.world);
+					 		if(i>0){
+						 		for(var j=1; j<a[i].length;j++){
+						 		//	console.log("hey");
+						 			new_array[new_array.length-1][j+1]=a[i][j].duplicate_translate(0,d,new Vect(translate_coord));
+						 		}
+					 		}				 		 	
+ 			
+				 	}
+				 	return new_array;
+				 }			
+			}
+			function clone_array(a){
+				var new_arr=new Array();
+				for(var i=0; i<a.length;i++){
+					new_arr[i]=a[i];
+				}
+				return new_arr;
+			}
+			function make_soft_poly(radius,sides,dim,wd){
+				 this.interval = 2*Math.PI/sides;
+				 var angle=0;
+				 this.world=wd;
+				 this.group = new particle_group;
+				 var start_p=new particle(make_coord(new Array(0,radius)),2,2,this.world);
+				 //start_p.simulate=false;
+				 this.group.add(start_p);
+				 var sets= new Array();
+				 this.sides=sides;
+				 this.rotate_duplicate=rotate_duplicate;
+				 sets[0]=new Array(start_p);
+			
+				 for(var i=0; i<dim-1; i++){
+				 	sets[i+1]=rotate_duplicate(sets[i],i+1);
+				 }
+
+				 function draw_vectors(){
+				 	var line_count=0;
+				 	var side_length=2*radius*Math.sin(0.5*interval);
+				 	var flat_set = [].concat.apply([], sets);
+				 
+				 	
+				 	var to_remove= new Array();
+				 	for(var i=0; i<flat_set.length;i++){
+				 		for(var j=i+1; j<flat_set.length; j++){
+				 					 			
+				 			if(array_equal(flat_set[i].pos.coord,flat_set[j].pos.coord)){
+				 				flat_set[i].exist=false;						 			
+				 			}
+				 		}
+				 	}
+				 	var new_ar= new Array();
+				 	for(var i=0; i<flat_set.length;i++){
+				 		if(flat_set[i].exist){
+				 			new_ar[new_ar.length]=flat_set[i];
+				 		}
+				 	}
+				 	flat_set=new_ar;
+
+
+				 	for(var i=0; i<flat_set.length;i++){
+				 		for(var j=i+1; j<flat_set.length; j++){
+				 			var dist=flat_set[i].pos.add(flat_set[j].pos.mult(-1)).magnitude();		
+				 			//console.log(flat_set[i].is_connected_to(flat_set[j]));	
+				 			if((!flat_set[i].is_connected_to(flat_set[j]))&&Math.round(dist*100)==Math.round(side_length*100)){
+				 				//var new_line=new Spring(flat_set[i],flat_set[j],side_length,7000);		
+				 				//new_line.color="#cbad7f"
+				 				line_count++;
+				 			}
+				 		}				 		
+				 	}
+				 	this.world.clean();
+				 }
+				 draw_vectors();
+				 function array_equal(a,b){
+				 	if(a.length!=b.length){
+				 		return false;
+				 	}
+
+				 	var a=new Vect(a);
+				 	var b=new Vect(b);
+				 	if(a.add(b.mult(-1)).magnitude()<1){
+				 			return true;
+				 	}
+				 	return false;
+				 }
+				 function rotate_duplicate(a,d){
+				 	var new_array= new Array();
+				 	for(var i=0; i<a.length;i++){	
+				 		for(var j=0; j<this.sides-1; j++){ 		
+
+					 			new_array[i*(this.sides-1)+j]=a[i].duplicate_rotate_to(0,d,(j+1)*interval);
+					 			//new_array[i*(this.sides-1)+j].simulate=false;
+				 		}
+
+				 		 for(var k =0; k<this.sides-2;k++){
+				 		 	var p=new_array[i*(this.sides-1)+k];
+				 		 	var q=new_array[i*(this.sides-1)+k+1];
+				 		 	var dist=p.pos.add(q.pos.mult(-1)).magnitude();	
+				 		 	var new_line=new Spring(p,q,dist+2,7000);
+				 		 }
+				 		 var m=new_array[i*(this.sides-1)+this.sides-2];
+				 		 var n=new_array[i*(this.sides-1)];
+				 		 var l=a[i];
+				 		// console.log(a);
+				 		 var dist1=m.pos.add(l.pos.mult(-1)).magnitude();	
+				 		 var dist2=n.pos.add(l.pos.mult(-1)).magnitude();
+				 		 var new_line=new Spring(m,l,dist1+2,7000);
+				 		 var new_line=new Spring(n,l,dist2+2,7000);	
+				 	}
+
+				 	return new_array;
+				 }			
+			}
+
+			function make_reg_poly(radius,sides,dim,wd){
+				 this.interval = 2*Math.PI/sides;
+				 var angle=0;
+				 this.world=wd;
+				 this.group = new particle_group;
+				 var start_p=new particle(make_coord(new Array(0,radius)),5,5,this.world);
+				 start_p.simulate=false;
+				 this.group.add(start_p);
+				 var sets= new Array();
+				 this.sides=sides;
+				 this.rotate_duplicate=rotate_duplicate;
+				 sets[0]=new Array(start_p);
+			
+				 for(var i=0; i<dim-1; i++){
+				 	sets[i+1]=rotate_duplicate(sets[i],i+1);
+				 }
+				 function draw_vectors(){
+				 	var line_count=0;
+				 	var side_length=2*radius*Math.sin(0.5*interval);
+				 	var flat_set = [].concat.apply([], sets);
+				 
+				 	
+				 	var to_remove= new Array();
+				 	for(var i=0; i<flat_set.length;i++){
+				 		for(var j=i+1; j<flat_set.length; j++){
+				 					 			
+				 			if(array_equal(flat_set[i].pos.coord,flat_set[j].pos.coord)){
+				 				flat_set[i].exist=false;						 			
+				 			}
+				 		}
+				 	}
+				 	var new_ar= new Array();
+				 	for(var i=0; i<flat_set.length;i++){
+				 		if(flat_set[i].exist){
+				 			new_ar[new_ar.length]=flat_set[i];
+				 		}
+				 	}
+				 	flat_set=new_ar;
+
+
+				 	for(var i=0; i<flat_set.length;i++){
+				 		for(var j=i+1; j<flat_set.length; j++){
+				 			var dist=flat_set[i].pos.add(flat_set[j].pos.mult(-1)).magnitude();				 	
+				 			if(Math.round(dist*100)==Math.round(side_length*100)){
+				 				var new_line=new vector(flat_set[i].pos.coord,flat_set[j].pos.coord,this.world);		
+				 				new_line.color="#cbad7f"
+				 				line_count++;
+				 			}
+				 		}				 		
+				 	}
+				 	this.world.clean();
+				 }
+				 draw_vectors();
+				 function array_equal(a,b){
+				 	if(a.length!=b.length){
+				 		return false;
+				 	}
+
+				 	var a=new Vect(a);
+				 	var b=new Vect(b);
+				 	if(a.add(b.mult(-1)).magnitude()<1){
+				 			return true;
+				 	}
+				 	return false;
+				 }
+				 function rotate_duplicate(a,d){
+				 	var new_array= new Array();
+				 	for(var i=0; i<a.length;i++){	
+				 		for(var j=0; j<this.sides-1; j++){ 			
+					 			new_array[i*(this.sides-1)+j]=a[i].duplicate_rotate_to(0,d,(j+1)*interval);
+					 			new_array[i*(this.sides-1)+j].simulate=false;
+				 		}
+
+				 		 for(var k =0; k<this.sides-2;k++){
+				 		 	var new_line=new vector(new_array[i*(this.sides-1)+k].pos.coord,new_array[i*(this.sides-1)+k+1].pos.coord,this.world);
+				 		 }
+				 		 var new_line=new vector(new_array[i*(this.sides-1)+this.sides-2].pos.coord,a[i].pos.coord,this.world);
+				 		 var new_line=new vector(new_array[i*(this.sides-1)+0].pos.coord,a[i].pos.coord,this.world);	
+				 	}
+
+				 	return new_array;
+				 }			
+			}
+			function static_point(coord,world){
+				this.color="rgba(255,255,255,0.5)"
+				this.coord=coord;
+				this.world=world;
+				this.world.add_static_point(this);
+			}
+			function vector(coord_1,coord_2,wd){
+				this.color="#999"
+				this.world=wd;	
+				this.coord_1=coord_1;
+				this.coord_2=coord_2;
+				this.pos_1=new Vect(this.coord_1);
+				this.pos_2=new Vect(this.coord_2);
+				this.world=wd;			
+				this.add_to=add_to;
+				this.add_to(wd);
+				this.duplicate_translate=duplicate_translate;
+				this.duplicate=duplicate;
+				function duplicate_translate(a,b,vect){
+					var line=this.duplicate();
+					line.pos_1=line.pos_1.add(vect);
+					line.pos_2=line.pos_2.add(vect);
+					line.coord_1=line.pos_1.coord;
+					line.coord_2=line.pos_2.coord;
+					return line;
+				}
+				function duplicate(){
+					return new vector(clone_array(this.coord_1),clone_array(this.coord_2),this.world);
+				}
+				function add_to(wd){
+					//console.log(wd)
+					wd.add_vector(this);
+				}
+			}
+
+						function connector(part_1,part_2,wd){
+				this.color="#999"
+				this.world=wd;	
+				this.coord_1=part_1.pos.coord;
+				this.coord_2=part_2.pos.coord;
+				this.pos_1=part_1.pos;
+				this.pos_2=part_2.pos;
+				this.world=wd;			
+				this.add_to=add_to;
+				this.add_to(wd);
+				this.duplicate_translate=duplicate_translate;
+				this.duplicate=duplicate;
+				this.update=update;
+				function update(){
+					this.coord_1=part_1.pos.coord;
+					this.coord_2=part_2.pos.coord;
+					this.pos_1=part_1.pos;
+					this.pos_2=part_2.pos;
+				}
+				function duplicate_translate(a,b,vect){
+					// var line=this.duplicate();
+					// line.pos_1=line.pos_1.add(vect);
+					// line.pos_2=line.pos_2.add(vect);
+					// line.coord_1=line.pos_1.coord;
+					// line.coord_2=line.pos_2.coord;
+					// return line;
+				}
+				function duplicate(){
+					//return new vector(clone_array(this.coord_1),clone_array(this.coord_2),this.world);
+				}
+				function add_to(wd){
+					wd.add_connector(this);
+				}				
+			}
+
+			/************===============PARSER=============*************/
+					function multiply(b){
+						this.evaluate=evaluate;
+						this.b=b
+						function evaluate(a){
+							var new_b=this.b;
+							if(typeof(this.b.val)=="number"){						
+									new_b=this.b.evaluate();
+							}
+							return a*new_b;
+						}
+					}
+					function plus(b){
+						this.evaluate=evaluate;
+						this.b=b
+						function evaluate(a){
+							var new_b=this.b;
+							if(typeof(this.b.val)=="number"){						
+									new_b=this.b.evaluate();
+							}
+
+							return a+new_b;
+						}
+					}
+					function pow(b){
+						this.evaluate=evaluate;
+						this.b=b
+						function evaluate(a){
+							var new_b=this.b;
+							if(typeof(this.b.val)=="number"){						
+									new_b=this.b.evaluate();
+							}
+							return Math.pow(a,new_b);
+						}
+					}
+					function log(b){
+						this.evaluate=evaluate;
+						this.b=b
+						function evaluate(a){
+							var new_b=this.b;
+							if(typeof(this.b.val)=="number"){						
+									new_b=this.b.evaluate();
+							}
+							return Math.log(a);
+						}
+					}
+					function cos(b){
+						this.evaluate=evaluate;
+						this.b=b
+						function evaluate(a){
+							var new_b=this.b;
+							if(typeof(this.b.val)=="number"){						
+									new_b=this.b.evaluate();
+							}
+							return Math.cos(a);
+						}
+					}
+					function sin(b){
+						this.evaluate=evaluate;
+						this.b=b
+						function evaluate(a){
+							var new_b=this.b;
+							if(typeof(this.b.val)=="number"){						
+									new_b=this.b.evaluate();
+							}
+							
+							return Math.sin(a);
+						}
+					}
+					function tan(b){
+						this.evaluate=evaluate;
+						this.b=b
+						function evaluate(a){
+							var new_b=this.b;
+							if(typeof(this.b.val)=="number"){						
+									new_b=this.b.evaluate();
+							}
+							return Math.tan(a);
+						}
+					}
+					function acos(b){
+						this.evaluate=evaluate;
+						this.b=b
+						function evaluate(a){
+							var new_b=this.b;
+							if(typeof(this.b.val)=="number"){						
+									new_b=this.b.evaluate();
+							}
+							return Math.acos(a);
+						}
+					}
+					function asin(b){
+						this.evaluate=evaluate;
+						this.b=b
+						function evaluate(a){
+							var new_b=this.b;
+							if(typeof(this.b.val)=="number"){						
+									new_b=this.b.evaluate();
+							}
+							return Math.asin(a);
+						}
+					}
+					function atan(b){
+						this.evaluate=evaluate;
+						this.b=b
+						function evaluate(a){
+							var new_b=this.b;
+							if(typeof(this.b.val)=="number"){						
+									this.b=new_b.evaluate();
+							}
+							return Math.atan(a);
+						}
+					}
+					function abs(b){
+						this.evaluate=evaluate;
+						this.b=b
+						function evaluate(a){
+							var new_b=this.b;
+							if(typeof(this.b.val)=="number"){						
+									new_b=this.b.evaluate();
+							}
+							return Math.abs(a);
+						}
+					}
+
+					function rand(b){
+					this.evaluate=evaluate;
+						this.b=b
+						function evaluate(a){
+							var new_b=this.b;
+							if(typeof(this.b.val)=="number"){						
+									new_b=this.b.evaluate();
+							}
+							return Math.random()*(new_b-a)+a;
+						}
+					}
+					function variable(){
+						var operations= new Array();
+						operations[0]=new plus(0);
+						this.operate=operate;
+						this.evaluate=evaluate;
+						this.val=0;
+						function operate(o){
+							operations[operations.length]=o;
+						}
+						function evaluate(){
+							var m=this.val;
+							for(var i=0; i<operations.length;i++ ){	
+								m=operations[i].evaluate(m);
+							}
+
+							return m;
+						}
+					}					
+
+					function expression(length){
+						this.variables= new Array();
+						this.length=length;
+						for(var i=0; i<this.length;i++){
+								this.variables[i]=new variable();
+						}
+						function reset_var(){
+							for(var i=0; i<this.length;i++){
+								this.variables[i].val=0;
+							}
+						}
+						this.evaluate=evaluate;
+						function evaluate(arr){
+							reset_var();
+							for(var i=0; i<arr.length; i++){
+								this.variables[i].val=arr[i];
+							}
+							return this.variables[0].evaluate();
+						}
+					}
+					function run_test_function(a,b,c){
+						a.operate(new sin(0));
+						a.operate(new plus(5));
+						b.operate(new sin(0));
+						c.operate(new sin(0));
+					//	d.operate(new cos(0));
+						a.operate(new plus(b));
+						a.operate(new plus (c));
+					//	a.operate(new plus (d));
+					}
+					function make_sin_function(e){
+						a=e.variables;
+						;
+						for(var i=0; i<a.length;i++){
+							a[i].operate(new multiply(1/100));							
+							a[i].operate(new sin(0));
+							a[i].operate(new multiply(150));
+							if(i!=0){
+								a[0].operate(new plus(a[i]));
+							}
+						}
+						a[0].operate(new plus(5))
+					}
+					
+					//run_test_function(ex.variables[0],ex.variables[1],ex.variables[2]);
+					
+					function graph(e,world,res,sl,min,max){
+					//	this.translation = -min;
+						this.zoom=(max-min)/res;
+						this.scale=sl/(max-min)
+						this.res=res;
+						this.expression=e;
+						this.world=world;
+						this.points= new Array();
+						this.lev_lim=e.length;
+						this.interval=sl/res; 
+						this.group=new particle_group();
+						this.side_length=sl;
+						this.make_array=make_array;
+						this.ev_array=ev_array;
+						function make_array(array,level){		
+
+							if(typeof(array)=="undefined"){
+								array=new Array();
+							}
+							console.log(this.res);					
+						    for(var i=0; i<this.res&&level<this.lev_lim;i++){
+
+								if(level+1<this.lev_lim){
+							 		array[i]=this.make_array(array[i],level+1);
+							 	}
+							 	else{
+							 		array[i]=-1;
+							 	}
+							}
+							return array;
+						}
+						
+						//console.log(this.points);
+						function ev_array(array,indexes,level){
+							for(var i=0; i<array.length; i++){								
+								indexes[indexes.length]=i;
+								if(Object.prototype.toString.call( array[i] ) === '[object Array]'){
+									this.ev_array(array[i],indexes,level+1);
+
+								}
+								else{
+									//console.log(level);
+								//	console.log(indexes);
+									var eval_array= new Array()
+									 var new_arr= indexes.slice(0);		
+									 						 
+									  for(var j=0; j<new_arr.length;j++){
+									  	eval_array[j]=new_arr[j]*this.zoom;
+									  	new_arr[j]=new_arr[j]*this.interval;
+									  }
+									  var z_val=(this.expression.evaluate(eval_array))*this.scale;	
+									 // console.log(eval_array);
+									  if(z_val>this.side_length||z_val<0){
+									  	new_arr[new_arr.length]=-1;
+									  }
+									  else{
+									  	 new_arr[new_arr.length]=z_val;
+									  	 array[i]=new particle(new_arr,0,2,this.world);
+										  array[i].simulate=false;
+										  this.group.add(array[i]);	
+									  }				 
+									 indexes.splice(indexes.length-1,1);									
+								}
+							}
+							//console.log('humph	'+level)
+							if(level!=1){
+								indexes.splice((level-1),(level-1));
+							}
+							else{
+								indexes.length=0;
+							}
+						}
+						var line_count=0;
+						this.make_lines=make_lines;
+						function make_lines(array,indexes,level){
+							for(var i=0; i<array.length-1; i++){								
+								indexes[indexes.length]=i;
+
+								if(Object.prototype.toString.call( array[i] ) === '[object Array]'){
+									this.make_lines(array[i],indexes,level+1);	
+									//console.log("??");
+								}
+								else{
+									// var new_arr= indexes.slice(0);
+									//console.log("?");
+									 for(var j=0; j<indexes.length;j++){
+									 	var new_index=indexes.slice(0);
+									 	new_index[j]+=1;
+									 	var a=array[i];
+									 	var b=get_array_item(this.points,new_index);
+									 	
+										if(typeof(b.pos)!="undefined"&&typeof(a.pos)!="undefined"){
+									 		var new_line= new connector(a,b,this.world);
+									 	}
+									 	else{
+									 		//console.log(new_index);
+									 		//console.log(b);
+									 	}
+
+									 	line_count++;
+									 	
+									 }
+										
+									  indexes.splice(indexes.length-1,1);									
+								}
+							}
+							if(level!=1){
+								indexes.splice((level-1),(level-1));
+							}
+							else{
+								indexes.length=0;
+							}
+						}
+
+						this.get_coord=get_coord;
+						function get_coord(coord){
+							return get_array_item(this.points,coord.pos.coord);
+						}
+						this.init = init;
+						this.points;
+						function init(){
+							console.log("??");
+							this.points=this.make_array(this.points,0);
+							this.ev_array(this.points, new Array(),0);		
+							var displacement = new Array();
+							this.make_lines(this.points,new Array(),0);
+							for(var i=0; i<this.lev_lim+1;i++){
+								displacement[i]=-this.side_length/2;
+							}
+							this.group.translate(new Vect(displacement));
+							this.world.update_connectors();
+						}										
+					}
+
+					function get_array_item(arr,indexes){
+						var new_arr=clone_array(arr);
+						for(var i=0; i<indexes.length; i++){
+							new_arr=new_arr[indexes[i]];
+						}
+						return new_arr;
+					}
+
+		}
+}
+
+	</script>
+</html>

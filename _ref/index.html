@@ -1,0 +1,159 @@
+<html>
+<head>
+	<title>Jake Bian: MDV</title>
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:300,400,700' rel='stylesheet' type='text/css'>
+	<script src='http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js'></script> 
+</head>
+<body >
+
+<h1 id="chrome">THE PROGRAM IS WRITTEN FOR GOOGLE CHROME AND CURRENTLY DOES NOT SUPPORT OTHER BROWSERS.</h1>
+<div id="header">
+			<a id="logo" href="http://jakebian.com/projects/mdv"><img src="logo.jpg"></a>
+		<span><h1 id="title">Visualization and Simulation of Rigid and Soft Body Dynamics in n Euclidean, Curved and Temporal Dimensions <a href="http://jakebian.com" id="jakebian">Jake Bian</a></h1> </h1>
+		<div id="links">
+		<a href="display.jpg">More Info</a>
+		<a href="report.pdf">Brief Report</a></div>
+</div>
+<div id="demos">
+<h1 id="label">DEMOS</h1>
+<p id="tag">An interactive visualization and simulation </br> engine for higher dimensions. </p>
+<a class="item" href="axes.html"><p>Axes</p><img alt="Curved dimensions" src="images/1.jpg"></a>
+<a class="item" href="hypercubes.html"><p>Hypercubes</p><img alt="Graphing" src="images/2.jpg" ></a>
+<a class="item" href="string.html"><p>Elastic String</p><img alt="Elastic String" src="images/3.jpg" ></a>
+<a class="item" href="inertial.html"><p>Inertial Objects in curved ST</p><img alt="rigid bodies" src="images/4.jpg"></a>
+<a class="item" href="n-polytope.html"><p>n-Polytopes</p><img alt="Polytope" src="images/5.jpg"></a>
+<a class="item" href="rigid_body.html"><p>Rigid Bodies</p><img alt="Hypercube" src="images/6.jpg"></a>
+<a class="item" href="temporal.html"><p>General Spacetime motion</p><img alt="Graphing" src="images/7.jpg" ></a>
+<a class="item" href="graphing.html"><p>Graphing</p><img alt="Elastic String" src="images/8.jpg" ></a>
+<a class="item" href="curvedrigid.html"><p>General geodesic motion: Rigid Bodies</p><img alt="rigid bodies" src="images/9.jpg"></a>
+<a class="item" href="curvedstring.html"><p>General geodesic motion: Elastic String</p><img alt="Polytope" src="images/10.jpg"></a>
+<a class="item" href="polytopes.html"><p>4 edged polytopes in nD</p><img alt="Polytope" src="images/11.jpg"></a>
+</div>
+<div id="copyright">
+	<p>&copy; Jake Bian 2013 <a href="">Jakebian.com</a></p>
+</div>
+<script type="text/javascript">
+	 $(document).ready(function() {
+		$("a.item").hover(function(){
+			$(this).children("p").fadeIn()
+		//	$(this).animate({borderRadius:15})
+		},function(){
+			$(this).children("p").fadeOut();
+		//	$(this).animate({borderRadius:5})
+			//$(this).animate({opacity:1})
+		});
+		
+	 });
+</script>
+</body>
+<style type="text/css">
+#copyright>p{
+	
+	margin-top:50px;
+	width:100%;
+	text-align: center;
+	float:left;
+
+}
+#copyright{
+	float:left;
+	text-align: center;
+	height:100px;
+	width:100%;
+}
+a.item{
+	width:285px;
+	height:125px;
+	margin:5px;
+	display: block;
+	float:left;
+	position: relative;
+	border-radius: 3px;
+	overflow: hidden;
+}
+a.item>p{
+	opacity:0.9;
+	background-color:#fff;
+	width:80%;
+	height:100%;
+	position: absolute;
+	left:0;
+	top:-20px;
+	font-size: 20px;
+	text-align: center;
+	display: table-cell;
+	padding:0 10%;
+	padding-top:40px;
+		display: none;
+
+}
+h1#chrome{
+	font-size:15px;
+	color:#fff;
+	background-color:#222;
+	width:100%;
+	text-align: center;
+	padding:20px 0;
+	margin-bottom:150px;
+}
+#links{
+	margin-left:170px;
+	font-size: 24px;
+	float:left;
+}
+#jakebian,a{
+	margin-left:15px;
+	color:#ea661d;
+	text-decoration: none;
+}
+	#header{
+		float:left;
+		padding:20px;
+		padding-bottom:50px;
+		padding-left:15%;
+	}
+	#demos{
+		float:left;
+	}
+
+		#title{
+			max-width:700px;
+			float:left;
+			padding-bottom:50px;
+			border-bottom:5px solid #ea661d;
+		}
+		img{
+			margin:0px!important;
+		}
+		#logo>img{
+			float:left;
+			margin-top:25px!important;
+			margin-right:50px!important;
+		}
+		#demos{
+			padding:50px;
+			background-image:url(images/bg.jpg);
+			width:100%;
+			color:#fff;
+		}
+		#label{
+			font-size:56px;
+			border-bottom:5px solid #ff7200;
+			float:left;
+		}
+		#tag{
+			clear:both;
+			font-size:28px;
+		}
+		body{
+			overflow-x: hidden;
+			font-family: Open Sans!important;
+			font-weight: 300!important;
+			padding:0;
+			margin: 0;
+		}
+		h1,h2{
+			font-weight: 300;
+		}
+</style>
+</html>
