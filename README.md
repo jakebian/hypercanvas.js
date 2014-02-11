@@ -1,6 +1,7 @@
 hypercanvas.js
 ==============
-Graphics engine for higher dimensions.
+> Hypercube.js is a graphics engine for arbitrary dimensions.
+
 
 Features
 --------
@@ -9,3 +10,7 @@ Features
 - Graph functions and construct geometric objects in curved spaces.
 - Navigate through higher dimensional spaces using a camera object
 - Animate everything.
+
+Dependencies
+------------
+- All graphics are rendered with the [paper.js] {http://paperjs.org/} engine. 
