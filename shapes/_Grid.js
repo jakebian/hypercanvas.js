@@ -1,21 +1,25 @@
-function Grid(dim,range,interval){
+function Grid(dim,range,res){
 	/**
-	 * Width/dimension of the grid
-	 * @type {Number}
+	 * Range of the grid, where array index specify dimension.
+	 * @type {Array}
 	 */
 	var range=range;
 
 	/**
-	 * Spacing between grid points
-	 * @type {Number}
+	 * Number of divisions,  where array index specify dimension.
+	 * @type {Array}
 	 */
-	var interval=interval-1;
+	var res=res;
 
 	/**
-	 * Number of points per dimension
+	 * Width of each division, where array index spcify dimension.
 	 * @type {[type]}
 	 */
-	var length=Math.ceil(range/interval);
+	var interval= new Array();
+
+	for(var i=0; i<res.length;i++){
+		interval[i]=range[i]/res[i];
+	}
 
 	/**
 	 * Given a point and dimension, 
@@ -27,9 +31,9 @@ function Grid(dim,range,interval){
 	 */
 	function vertices(pt,d){
 		var list=[];
-		for(var i=0; i<length;i++){
-			if(pt[d]!=i*interval||d==0){
-				pt[d]=i*interval;
+		for(var i=0; i<=res[d];i++){
+			if(pt[d]!=i*interval[d]||d==0){
+				pt[d]=i*interval[d];
 				list[list.length]=pt.slice();
 			}
 			if(d<dim-1){
@@ -50,9 +54,9 @@ function Grid(dim,range,interval){
 		for(var d=0; d<dim;d++){
 			if(pt[d]==0){
 			  	var segs=[];
-			  	for(var i=0; i<length;i++){
+			  	for(var i=0; i<=res[d];i++){
 			  		var p=pt.slice(0);
-			  		p[d]=i*interval;
+			  		p[d]=i*interval[d];
 			  		segs[i]=p;
 			  	}
 			  	lines[lines.length]=segs;

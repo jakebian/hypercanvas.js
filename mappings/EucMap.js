@@ -7,9 +7,7 @@ function EucMap(){
   	}
   	this.toEucCoords=function(coords){
   		return coords;
-  	}
-
-    
+  	} 
 
   	this.toEucLinesList=function(lineList){
   		var map=this;

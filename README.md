@@ -10,6 +10,7 @@ Features
 - Graph functions and construct geometric objects in curved spaces.
 - Navigate through higher dimensional spaces using a camera object
 - Animate objects in any coordinate system. 
+- Handle mouse and keyboard interactions with Paper.js. 
 
 Dependencies
 ------------

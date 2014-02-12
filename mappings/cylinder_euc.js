@@ -12,8 +12,6 @@ function CylinderEuc(r){
   map.fromEucCoords=function(coords){
     var result=coords.slice();
     result[0]=r;
-    
-   
     if(coords[0]!=0){
        result[1]=2*Math.atan(coords[0]/Math.sqrt(Math.abs(Math.pow(r,2)-Math.pow(coords[1],2))));
     }

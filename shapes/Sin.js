@@ -1,7 +1,7 @@
 function Sin(dim,freq,phase){
 	var vertices=[];
 	var edges=[];
-	var grid = new Grid(dim-1,400,50);
+	var grid = new Grid(2,[800,800],[8,8]);
 	this.init=function(){		
 		this.update();
 	}
