@@ -16,10 +16,7 @@ function SinDemo(dim){
   	var grid=new SquareGrid(dim-1,400,res);
   	var map=new SinEuc(dim,1,0);
   	stage.newRopes(map.toEucLinesList(grid.edges()),'#999'); 
-
-  	// var sin= new Sin(2,2,0);
-  	// stage.newRopes(map.toEucLinesList(map.fromEucLinesList(sin.edges())),'red');
-
+    
   	var camcoord=[];
   	for(var i=0; i<dim;i++){
   		camcoord[i]=200;
@@ -29,16 +26,11 @@ function SinDemo(dim){
   	var phase=0;
 
   	var delta=0.02;
-	this.onFrame=function(event) {
-		cam.rotateAll(delta);
-		cam.update();
-	}
-	this.onMouseMove=function(event) {
-		if(event.point.x<0&&event.point.y<0){
-			delta=-0.02
-		}
-		else{
-			delta=0.02;
-		}
-	}
+  	this.onFrame=function(event) {
+  		cam.rotateAll(delta);
+  		cam.update();
+  	}
+  	this.onMouseMove=function(event) {
+      delta=event.point.x*0.00005;
+  	}
 }

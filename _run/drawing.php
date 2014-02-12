@@ -37,7 +37,6 @@
 				project.clear();
 				demo = new SinDemo(dim);
 			}
-			// 
 		});
 		function onFrame(event) {
 			demo.onFrame(event);
