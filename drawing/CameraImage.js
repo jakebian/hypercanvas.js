@@ -69,7 +69,7 @@ function CameraImage(camera){
 		}
 		return this;
 	}
-
+	var count=0;
 	function updateRopes(){
 		var camRopes=camera.ropes();
 		for(var i=0; i<camRopes.length; i++){
@@ -78,8 +78,11 @@ function CameraImage(camera){
 			for(var j=0; j<camRope.length;j++){
 				segments[j].point=getSegment(camRope[j]);
 			}
-			ropes[i].smooth();
+			
+			if(count%3===0){
+			ropes[i].smooth();}
 		}
+		count++;
 		return this;
 	}
 

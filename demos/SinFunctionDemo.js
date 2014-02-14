@@ -1,4 +1,4 @@
-function SinDemo(dim){
+function SinFunctionDemo(dim){
 	var dim=dim;
 
 	var space= new EucSpace(dim);	  	
@@ -17,6 +17,9 @@ function SinDemo(dim){
   	var map=new SinEuc(dim-1,1,0);
   	stage.newRopes(map.toEucLinesList(grid.edges()),'#999'); 
 
+  	var func=new SquareGrid(dim-2,400,res);
+  	var funcMap=new SinEuc(dim-2,1,0);
+  	stage.newRopes(map.toEucLinesList(funcMap.toEucLinesList(func.edges())),'red'); 
   	// var sin= new Sin(2,2,0);
   	// stage.newRopes(map.toEucLinesList(map.fromEucLinesList(sin.edges())),'red');
 

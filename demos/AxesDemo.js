@@ -1,10 +1,10 @@
-function SinDemo(dim){
+function AxesDemo(dim){
 	var dim=dim;
 
 	var space= new EucSpace(dim);	  	
   	var stage= new Stage(space);
 
-  	// stage.addAxes();
+  	stage.addAxes();
 
   	var res=7;
   	if(dim==4){
@@ -13,16 +13,15 @@ function SinDemo(dim){
   	if(dim>4){
   		res=3;
   	}
-  	var grid=new SquareGrid(dim-1,400,res);
-  	var map=new SinEuc(dim-1,1,0);
-  	stage.newRopes(map.toEucLinesList(grid.edges()),'#999'); 
-
+  	var shape=new SimpleShape(dim);
+  	stage.newRopes(shape.edges(),'#999'); 
+  	stage.newDots(shape.vertices(),'red');
   	// var sin= new Sin(2,2,0);
   	// stage.newRopes(map.toEucLinesList(map.fromEucLinesList(sin.edges())),'red');
 
   	var camcoord=[];
   	for(var i=0; i<dim;i++){
-  		camcoord[i]=200;
+  		camcoord[i]=10;
   	}
   	var camPos=space.newVector(camcoord);
   	var cam= new Camera(stage,camPos,emptyOrientation(dim));	

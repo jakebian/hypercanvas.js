@@ -4,6 +4,8 @@ function CubeDemo(dim){
 	var space= new EucSpace(dim);	  	
   	var stage= new Stage(space);
 
+  	// stage.addAxes();
+
   	res =1
   	var grid=new SquareGrid(dim,400,res);
   	var map=new SinEuc(dim,1,0);

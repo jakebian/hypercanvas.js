@@ -3,16 +3,20 @@ module.exports = function (grunt) {
 
     // define source files and their destinations
     uglify: {
-        files: { 
-            src: '**.js',  // source files mask
-            dest: 'build/hypercanvas.min.js',    // destination folder
-            expand: true,    // allow dynamic building
-            flatten: true,   // remove all unnecessary nesting
-            ext: '.min.js'   // replace .js to .min.js
+        js: {
+            files: { 
+                'build/hypercanvas.min.js':[
+                    'start/*.js',
+                    'util/*.js',
+                    'models/*.js',
+                    'euclidean/*.js',
+                    'mappings/*.js',
+                    'shapes/*.js',
+                    'drawing/*.js',
+                    'demos/*.js'
+                ]
+            }
         }
-    },
-    watch: {
-        js:  { files: '**/*.js', tasks: [ 'uglify' ] },
     }
 });
 
